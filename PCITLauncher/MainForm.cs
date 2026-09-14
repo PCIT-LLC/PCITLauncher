@@ -233,7 +233,41 @@ public class MainForm : Form
         };
         toolsItem.DropDownItems.Add(logsItem);
 
-        var configItem = new ToolStripMenuItem("Settings...");
+        var cleanItem = new ToolStripItem("Clean Old Logs...");
+        cleanItem.Click += (_, _) =>
+        {
+            try
+            {
+                var logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCITLauncher", "logs");
+                if (!Directory.Exists(logDir))
+                {
+                    MessageBox.Show("No logs folder found.", "Clean Logs", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                var cutoff = DateTime.Now.AddDays(-7);
+                var files = Directory.GetFiles(logDir, "*.log");
+                int deleted = 0;
+                foreach (var f in files)
+                {
+                    var written = File.GetLastWriteTime(f);
+                    if (written < cutoff)
+                    {
+                        File.Delete(f);
+                        deleted++;
+                    }
+                }
+
+                MessageBox.Show($"Deleted {deleted} log(s) older than 7 days.", "Clean Logs", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to clean logs: {ex.Message}", "Clean Logs", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        };
+        toolsItem.DropDownItems.Add(cleanItem);
+
+        var configItem = new ToolStripItem("Settings...");
         configItem.Click += (_, _) =>
         {
             using var dlg = new Form
