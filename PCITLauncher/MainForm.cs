@@ -13,6 +13,16 @@ public class MainForm : Form
 
     public MainForm()
     {
+        try
+        {
+            var logPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "PCITLauncher", "startup.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+            File.AppendAllText(logPath, $"[{DateTime.Now}] MainForm ctor start{Environment.NewLine}");
+        }
+        catch { }
+
         WindowState = FormWindowState.Minimized;
         ShowInTaskbar = false;
         Opacity = 0;
@@ -21,11 +31,30 @@ public class MainForm : Form
         _mutex = new Mutex(true, "PCITLauncher-SingleInstance", out bool createdNew);
         if (!createdNew)
         {
+            // Log before showing the message box
+            try
+            {
+                var logPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PCITLauncher", "startup.log");
+                File.AppendAllText(logPath, $"[{DateTime.Now}] Single-instance check FAILED - already running{Environment.NewLine}");
+            }
+            catch { }
+
             MessageBox.Show("PCITLauncher is already running.", "PCITLauncher",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             Environment.Exit(0);
             return;
         }
+
+        try
+        {
+            var logPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "PCITLauncher", "startup.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] Single-instance check OK{Environment.NewLine}");
+        }
+        catch { }
 
         _tray = new NotifyIcon
         {
@@ -33,6 +62,15 @@ public class MainForm : Form
             Visible = true,
             Text = "PCITLauncher"
         };
+
+        try
+        {
+            var logPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "PCITLauncher", "startup.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] NotifyIcon created{Environment.NewLine}");
+        }
+        catch { }
 
         LoadOrCreateConfig();
         InitializeScripts();
