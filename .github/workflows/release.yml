@@ -16,17 +16,25 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Publish
+      - name: Publish (self-contained)
         run: |
           dotnet publish PCITLauncher/PCITLauncher.csproj -c Release -r win-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -o dist
 
-      - name: Zip
+      - name: Publish (framework-dependent)
         run: |
-          Compress-Archive -Path dist\* -DestinationPath PCITLauncher-${{ github.ref_name }}.zip -Force
+          dotnet publish PCITLauncher/PCITLauncher.csproj -c Release -r win-x64 --self-contained false -p:DebugType=None -p:DebugSymbols=false -o dist-framework
+
+      - name: Zip (self-contained)
+        run: |
+          Compress-Archive -Path dist\* -DestinationPath PCITLauncher-${{ github.ref_name }}-self-contained.zip -Force
+
+      - name: Zip (framework-dependent)
+        run: |
+          Compress-Archive -Path dist-framework\* -DestinationPath PCITLauncher-${{ github.ref_name }}-framework.zip -Force
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: PCITLauncher-${{ github.ref_name }}.zip
+          files: PCITLauncher-${{ github.ref_name }}-self-contained.zip,PCITLauncher-${{ github.ref_name }}-framework.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
