@@ -29,8 +29,8 @@ public static class ScriptRepoManager
     {
         using var repo = new Repository(ScriptsDir);
 
-        // Fetch all refs from origin
-        var remote = repo.Network.Fetch("origin", new string[] { $"+refs/heads/{branch}:refs/remotes/origin/{branch}" });
+        // Fetch updates from origin
+        repo.Network.Fetch("origin", new[] { $"+refs/heads/{branch}:refs/remotes/origin/{branch}" });
 
         // Get local and remote branch tips
         var localBranch = repo.Branches[branch];
