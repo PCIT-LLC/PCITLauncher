@@ -4,16 +4,27 @@ System tray PowerShell script launcher for Windows. Pulls scripts from a central
 
 ## Quick Start
 
-1. Download `PCITLauncher.exe` from the [Releases](https://github.com/YourOrg/PCITLauncher/releases) page.
-2. Copy it to any folder on the target machine (e.g., `C:\Tools\PCITLauncher\`).
-3. Run it. On first launch, enter the **PCITScripts repo URL** when prompted.
-4. The app minimizes to the system tray. Right-click the shield icon to see your scripts.
+1. Download the appropriate release from the [Releases](https://github.com/PCIT-LLC/PCITLauncher/releases) page:
+
+   | File | Size | When to use |
+   |---|---|---|
+   | `PCITLauncher-vX.Y.Z-self-contained.zip` | ~65MB | **Recommended.** Works on any Windows 10/11 machine. No prerequisites needed. |
+   | `PCITLauncher-vX.Y.Z-framework.zip` | ~10MB | Only if the machine already has the **.NET 8 Runtime** installed. |
+
+2. Extract the zip to any folder (e.g., `C:\Tools\PCITLauncher\`).
+3. Run `PCITLauncher.exe`.
+4. On first launch, a setup dialog appears. Enter the **PCITScripts repo URL** when prompted.
+5. The app minimizes to the system tray. Right-click the purple "S" icon to see your scripts.
 
 ## Requirements
 
 - Windows 10 or 11
-- [git](https://git-scm.com/downloads) installed and in `PATH`
 - PowerShell 5.1+ (built into Windows)
+- One of the following:
+  - For the self-contained build: **nothing extra** — the .NET 8 runtime is bundled inside.
+  - For the framework-dependent build: [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) must be installed separately. If unsure, use the self-contained build.
+
+> **Note:** The launcher no longer requires git to be installed on the target machine. Script cloning and updates use a bundled git library (LibGit2Sharp) instead of the git command-line tool.
 
 ## First-Run Setup
 
@@ -31,9 +42,9 @@ These settings are saved to `%LOCALAPPDATA%\PCITLauncher\launcher.config.json`. 
 
 - **Right-click** the tray icon → nested category menus → click a script to run
 - **Shield icon** on a menu item = requires admin (UAC prompt will appear)
-- **Tools → Check for Script Updates** → manual `git pull` from the scripts repo
+- **Tools → Check for Script Updates** → pulls the latest scripts from the repo
 - **Tools → Open Logs Folder** → opens `%LOCALAPPDATA%\PCITLauncher\logs\`
-- **Tools → Settings** → change the repo URL
+- **Tools → Settings** → change the repo URL, branch, and auto-update preference
 
 ## Logs
 
@@ -51,10 +62,10 @@ Every script execution writes a timestamped log file to `%LOCALAPPDATA%\PCITLaun
 
 | Problem | Fix |
 |---|---|
-| "git is not installed" | Install [git](https://git-scm.com/downloads) and restart the launcher |
 | Scripts menu is empty | Run **Tools → Check for Script Updates** to force a clone/pull |
 | UAC prompt every time | Expected — elevated scripts always trigger UAC by design |
 | Ghost icon after crash | Hover over the tray icon — Windows clears it. If persistent, restart Explorer. |
+| "Failed to load .NET runtime" | Use the self-contained build, or install the .NET 8 Desktop Runtime |
 
 ## Building from Source
 
