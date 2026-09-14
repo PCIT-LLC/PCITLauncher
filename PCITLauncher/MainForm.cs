@@ -56,9 +56,15 @@ public class MainForm : Form
         }
         catch { }
 
+        // Load the PCIT icon from the bundled app.ico; fallback to shield if missing
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
+        var trayIcon = File.Exists(iconPath)
+            ? new System.Drawing.Icon(iconPath)
+            : SystemIcons.Shield;
+
         _tray = new NotifyIcon
         {
-            Icon = SystemIcons.Shield,
+            Icon = trayIcon,
             Visible = true,
             Text = "PCITLauncher"
         };

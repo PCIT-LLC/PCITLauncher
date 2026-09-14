@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>app.ico</ApplicationIcon>
+    <Content Include="app.ico" CopyToOutputDirectory="PreserveNewest" Link="app.ico" />
     <RootNamespace>PCITLauncher</RootNamespace>
     <AssemblyName>PCITLauncher</AssemblyName>
   </PropertyGroup>
