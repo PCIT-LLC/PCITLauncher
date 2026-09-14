@@ -134,14 +134,6 @@ public class MainForm : Form
 
     private void InitializeScripts()
     {
-        if (!ScriptRepoManager.IsGitInstalled())
-        {
-            _tray.ShowBalloonTip(5000, "PCITLauncher",
-                "git is not installed. Install git and restart, or click here to configure.",
-                ToolTipIcon.Warning);
-            return;
-        }
-
         if (!ScriptRepoManager.IsCloned())
         {
             try

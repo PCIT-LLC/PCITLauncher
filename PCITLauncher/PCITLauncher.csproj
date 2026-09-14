@@ -15,4 +15,8 @@
     <None Include="app.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.30.0" />
+  </ItemGroup>
+
 </Project>

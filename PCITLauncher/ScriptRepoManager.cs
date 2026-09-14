@@ -1,7 +1,6 @@
 namespace PCITLauncher;
 
-using System.Diagnostics;
-using System.Text.Json;
+using LibGit2Sharp;
 
 public static class ScriptRepoManager
 {
@@ -12,72 +11,60 @@ public static class ScriptRepoManager
     private static readonly string GitMarker = Path.Combine(ScriptsDir, ".git");
     private static readonly string ConfigPath = Path.Combine(AppDataDir, "launcher.config.json");
 
-    public static bool IsGitInstalled()
-    {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "git",
-                Arguments = "--version",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true
-            };
-            using var proc = Process.Start(psi);
-            proc!.WaitForExit();
-            return proc.ExitCode == 0;
-        }
-        catch { return false; }
-    }
+    // --- Repo lifecycle ---
 
     public static bool IsCloned() => Directory.Exists(GitMarker);
 
     public static void Clone(string repoUrl, string branch)
     {
         Directory.CreateDirectory(AppDataDir);
-        var psi = new ProcessStartInfo
+        Repository.Clone(repoUrl, ScriptsDir, new CloneOptions
         {
-            FileName = "git",
-            Arguments = $"-c core.autocrlf=true clone --branch {branch} --single-branch \"{repoUrl}\" \"{ScriptsDir}\"",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-        RunGit(psi, "clone");
+            BranchName = branch,
+            Checkout = true
+        });
     }
 
     public static bool Pull(string branch)
     {
-        var psi = new ProcessStartInfo
+        using var repo = new Repository(ScriptsDir);
+        
+        // Fetch from origin
+        var remote = repo.Remotes["origin"];
+        var refSpecs = remote.FetchRefSpecs;
+        repo.Network.Fetch(remote, refSpecs);
+
+        // Check if there are incoming commits
+        var localBranch = repo.Branches[branch];
+        var remoteBranch = repo.Branches[$"origin/{branch}"];
+        
+        if (localBranch == null || remoteBranch == null)
+            return false;
+
+        // Count commits between local and remote
+        var aheadBehind = repo.ObjectDatabase.CalculateAheadBehind(
+            localBranch.Tip.Id, remoteBranch.Tip.Id);
+
+        if (aheadBehind.Behind == 0)
+            return false; // Already up to date
+
+        // Fast-forward or merge
+        var mergeResult = repo.Merge(remoteBranch.Tip, new MergeOptions
         {
-            FileName = "git",
-            Arguments = $"-C \"{ScriptsDir}\" pull origin {branch}",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-        var output = RunGit(psi, "pull");
-        return output.Contains("Already up to date") || output.Contains("Fast-forward") || output.Contains("files changed");
+            CommitOnSuccess = true,
+            FastForwardStrategy = FastForwardStrategy.Default,
+            MergeFileFavor = MergeFileFavor.Theirs
+        });
+
+        return mergeResult.Status != MergeStatus.Conflicts;
     }
 
-    private static string RunGit(ProcessStartInfo psi, string operation)
-    {
-        using var proc = Process.Start(psi);
-        string stdout = proc!.StandardOutput.ReadToEnd();
-        string stderr = proc.StandardError.ReadToEnd();
-        proc.WaitForExit();
-        if (proc.ExitCode != 0)
-            throw new Exception($"git {operation} failed: {stderr}");
-        return stdout + stderr;
-    }
+    // --- Config persistence ---
 
     public static void SaveConfig(LauncherConfig config)
     {
         Directory.CreateDirectory(AppDataDir);
-        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+        var json = System.Text.Json.JsonSerializer.Serialize(config, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(ConfigPath, json);
     }
 
@@ -85,7 +72,7 @@ public static class ScriptRepoManager
     {
         if (!File.Exists(ConfigPath)) return null;
         var json = File.ReadAllText(ConfigPath);
-        return JsonSerializer.Deserialize<LauncherConfig>(json);
+        return System.Text.Json.JsonSerializer.Deserialize<LauncherConfig>(json);
     }
 
     public static string ScriptConfigPath => Path.Combine(ScriptsDir, "config.json");
