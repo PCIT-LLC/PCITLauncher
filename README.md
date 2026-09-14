@@ -72,7 +72,7 @@ Every script execution writes a timestamped log file to `%LOCALAPPDATA%\PCITLaun
 ```bash
 git clone https://github.com/PCIT-LLC/PCITLauncher.git
 cd PCITLauncher
-dotnet publish PCITLauncher/PCITLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o dist
+dotnet publish PCITLauncher/PCITLauncher.csproj -c Release -r win-x64 --self-contained true -o dist
 ```
 
 The compiled .exe is in `dist\PCITLauncher.exe`.
@@ -87,3 +87,7 @@ git push origin v1.0.0
 ```
 
 GitHub Actions builds a self-contained single-file .exe and attaches it to the release automatically.
+
+## License
+
+[MIT](LICENSE)
