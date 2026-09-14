@@ -31,8 +31,8 @@ public static class ScriptRepoManager
         
         // Fetch from origin
         var remote = repo.Remotes["origin"];
-        var refSpecs = remote.FetchRefSpecs;
-        repo.Network.Fetch(remote, refSpecs);
+        var fetchRefSpecs = remote.FetchRefSpecs;
+        Commands.Fetch(repo, remote.Name, fetchRefSpecs, null, "");
 
         // Check if there are incoming commits
         var localBranch = repo.Branches[branch];
@@ -42,21 +42,28 @@ public static class ScriptRepoManager
             return false;
 
         // Count commits between local and remote
-        var aheadBehind = repo.ObjectDatabase.CalculateAheadBehind(
+        var aheadBehind = repo.ObjectDatabase.AheadBehind(
             localBranch.Tip.Id, remoteBranch.Tip.Id);
 
         if (aheadBehind.Behind == 0)
             return false; // Already up to date
 
-        // Fast-forward or merge
-        var mergeResult = repo.Merge(remoteBranch.Tip, new MergeOptions
-        {
-            CommitOnSuccess = true,
-            FastForwardStrategy = FastForwardStrategy.Default,
-            MergeFileFavor = MergeFileFavor.Theirs
-        });
+        // Merge with fast-forward preference
+        var mergeResult = repo.MergeAnalysis(remoteBranch.Tip, out MergePreferences prefs);
 
-        return mergeResult.Status != MergeStatus.Conflicts;
+        if (mergeResult.CanFastForward)
+        {
+            repo.Reset(ResetMode.Hard, remoteBranch.Tip);
+            return true;
+        }
+
+        // Fall back to a regular merge
+        var mergeOpts = new MergeOptions
+        {
+            FastForwardOptions = FastForwardOptions.Default
+        };
+        var result = repo.Merge(remoteBranch, mergeOpts);
+        return result.Status != MergeStatus.Conflicts;
     }
 
     // --- Config persistence ---
