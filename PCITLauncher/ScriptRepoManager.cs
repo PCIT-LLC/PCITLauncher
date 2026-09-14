@@ -1,6 +1,7 @@
 namespace PCITLauncher;
 
 using System.Diagnostics;
+using System.Text.Json;
 
 public static class ScriptRepoManager
 {

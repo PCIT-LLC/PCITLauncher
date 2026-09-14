@@ -1,5 +1,6 @@
 namespace PCITLauncher;
 
+using System.Diagnostics;
 using System.Text.Json;
 
 public class MainForm : Form
