@@ -244,12 +244,31 @@ public class MainForm : Form
         var configItem = new ToolStripMenuItem("Settings...");
         configItem.Click += (_, _) =>
         {
-            var url = Microsoft.VisualBasic.Interaction.InputBox(
-                "PCITScripts repo URL:", "PCITLauncher Settings",
-                _config.RepoUrl);
-            if (!string.IsNullOrWhiteSpace(url) && url != _config.RepoUrl)
+            using var dlg = new Form
             {
-                _config.RepoUrl = url.Trim();
+                Text = "PCITLauncher Settings",
+                Size = new Size(500, 220),
+                StartPosition = FormStartPosition.CenterScreen,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var lbl = new Label { Text = "PCITScripts repo URL:", Location = new Point(12, 15), AutoSize = true };
+            var txt = new TextBox { Text = _config.RepoUrl, Location = new Point(12, 40), Size = new Size(460, 23) };
+            var lblBranch = new Label { Text = "Branch:", Location = new Point(12, 75), AutoSize = true };
+            var txtBranch = new TextBox { Text = _config.Branch, Location = new Point(12, 100), Size = new Size(100, 23) };
+            var chkAuto = new CheckBox { Text = "Auto-update scripts on startup", Location = new Point(12, 130), Checked = _config.AutoUpdate, AutoSize = true };
+            var btn = new Button { Text = "Save", Location = new Point(397, 155), DialogResult = DialogResult.OK };
+
+            dlg.Controls.AddRange(new Control[] { lbl, txt, lblBranch, txtBranch, chkAuto, btn });
+            dlg.AcceptButton = btn;
+
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                _config.RepoUrl = txt.Text.Trim();
+                _config.Branch = txtBranch.Text.Trim();
+                _config.AutoUpdate = chkAuto.Checked;
                 ScriptRepoManager.SaveConfig(_config);
             }
         };
